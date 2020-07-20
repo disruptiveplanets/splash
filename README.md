@@ -15,17 +15,28 @@ Julien de Wit, Artem Burdanov, Benjamin Rackham
 SPLASH (Speculoos PLAnet SearcH) is a module that works with cambridge products in order to detect planets. SPLASH is powered by SVD, and it finds the best basis vector that explains the trend in data while preserving box like transit shapes. Current version is meant to work with old/new version of SPECULOOS Cambridge Pipeline products. Also it is meant to work with TRAPPHOT products. SPLASH also utilizes multiprocessing if resources are available to improve the speed of the algorithm.
 
 # Installation Guide:
+
+## Option 1: Install from GitHub via `pip`
+From the command line, simply type:
+
+    pip install git+https://github.com/disruptiveplanets/splash
+
+## Option 2: Install from Source
 To install, first clone the code:
-- git clone https://github.com/disruptiveplanets/splash
+
+    git clone https://github.com/disruptiveplanets/splash
 
 Then, go the the splash folder by:
-- cd splash
+
+    cd splash
 
 Install by typing in the following command:
-- python setup.py install
+
+    python setup.py install
 
 You may require superuser privileges:
-- sudo python setup.py install
+
+    sudo python setup.py install
 
 # Products:
 The stable version of the code resides at https://github.com/disruptiveplanets/splash, whereas the code is actively being developed is at https://github.com/prajwal309/Splash
