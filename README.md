@@ -27,7 +27,7 @@ Install by typing in the following command:
 You may require superuser privileges:
 - sudo python setup.py install
 
-
+# Products:
 The stable version of the code resides at https://github.com/disruptiveplanets/splash, whereas the code is actively being developed is at https://github.com/prajwal309/Splash
 
 SPLASH creates following subfolders within the output directory:
@@ -39,5 +39,5 @@ SPLASH creates following subfolders within the output directory:
 
 
 # Future development:
-- Algorithm are constantly being imrove.A more robust and faster transit matching algorithm is being build.
-- A completeness test will be performed using the algorithm.
+- Algorithm are constantly being improved. A more robust and faster transit matching algorithm is being build, and currently being tested.
+- A completeness test will be performed using the algorithm, and perhaps part of the code.
