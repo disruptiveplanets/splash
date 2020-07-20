@@ -8,6 +8,8 @@ Prajwal Niraula, Lionel Garcia, Alex Quach
 ## Email:
 prajwalniraula@gmail.com, lionel.garcia@student.uliege.be
 
+## Additional Team Members:
+Julien de Wit, Artem Burdanov, Benjamin Rackham 
 
 # Description
 SPLASH (Speculoos PLAnet SearcH) is a module that works with cambridge products in order to detect planets. SPLASH is powered by SVD, and it finds the best basis vector that explains the trend in data while preserving box like transit shapes. Current version is meant to work with old/new version of SPECULOOS Cambridge Pipeline products. Also it is meant to work with TRAPPHOT products. SPLASH also utilizes multiprocessing if resources are available to improve the speed of the algorithm.
