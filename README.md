@@ -28,7 +28,7 @@ You may require superuser privileges:
 - sudo python setup.py install
 
 
-The stable version of the code resides at https://github.com/disruptiveplanets/splash, whereas the code is activately being developed at  https://github.com/prajwal309/Splash
+The stable version of the code resides at https://github.com/disruptiveplanets/splash, whereas the code is actively being developed is at https://github.com/prajwal309/Splash
 
 SPLASH creates following subfolders within the output directory:
 - DailyBestCases: Diagnostic plots for  containing the best case fit for each night.
