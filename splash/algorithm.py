@@ -56,7 +56,6 @@ class GeneralTransitSearch:
         self.transitSearchParam = ParseFile(Filepath)
 
 
-
     def Run(self, Target, ShowPlot=False, SavePlot=False, SaveData=True):
         '''
         Runs SVD algorithm to find the

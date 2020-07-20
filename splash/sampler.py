@@ -344,7 +344,8 @@ class TransitFit:
         plt.figure(figsize=(14,8))
         plt.plot(-np.mean(Probability, axis=0))
         plt.yscale('log')
-        plt.ylabel("Log Probability")
+        plt.ylabel("Log Probability", fontsize=20)
+        plt.xlabel("Step Number", fontsize=20)
         plt.tight_layout()
 
         if self.SavePlot:

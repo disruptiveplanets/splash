@@ -68,7 +68,7 @@ class Target:
                 input("Still awaiting completion of data processing by Cambridge")
                 self.ParamNames, self.ParamValues = ReadAllNewFitsData(Location, Name)
             else:
-                input("Only three version are available")
+                raise("Only three version are available.")
 
         #TBJD offset change
         if min(self.ParamValues[:,0])>2450000.0:
