@@ -52,7 +52,8 @@ class GeneralTransitSearch:
         '''
         Initialized the transit search parameters from Search.ini
         '''
-        self.transitSearchParam = ParseFile("SearchParams.config")
+        Filepath = os.path.join(os.getcwd(),"SearchParams.config")
+        self.transitSearchParam = ParseFile(Filepath)
 
 
 
