@@ -30,6 +30,7 @@ setuptools.setup(
         'emcee',
         'numdifftools',
         'lmfit',
-        'transitleastsquares'
+        'transitleastsquares',
+        'lxml'
      ]
 )
