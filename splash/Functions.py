@@ -469,10 +469,25 @@ def SplineFlattening(Time, Flux, period, NIter = 4, StdCutOff=2.5, poly=3, knot=
     FluxPred = spl(Time)
     return FluxPred
 
+def GetIDOnline(Name, IdType=None):
+    '''
+    Function that will get SPECULOOS ID from online
+    '''
+    AllTargets="http://www.mrao.cam.ac.uk/SPECULOOS/portal_v2/php/get_targets.php"
+    pass
 
 def GetID(Name, IdType=None):
     '''
     Method to get Speculoos ID/GAIA ID from viceversa
+
+    Parameters
+    -----------
+
+    Name: string
+          Either SPECULOOS or GAIA ID
+
+    Returns: string
+            If SPECULOOS ID is provided, returns GAIA ID and vice-versa.
     '''
 
     #Loading the database
@@ -483,10 +498,17 @@ def GetID(Name, IdType=None):
     if "SPECULOOS" in IdType.upper():
         Name = Name.upper().replace("B","")
         print("Fetching GAIA ID for :", Name)
-        return GaiaID[SpName == Name.upper()][0]
-
+        Index = [SpName == Name.upper()]
+        if np.sum(Index)==1:
+            return GaiaID[Index][0]
+        else:
+            print("The target is not found in the database")
+            return None
     elif "GAIA" in IdType.upper():
         print("Fetching SPECULOOS ID for GAIA ID", Name)
-        return SpName[GaiaID==int(Name)][0]
+        Index= GaiaID==int(Name)
+        if np.sum(Index) == 1:
+            return SpName[Index][0]
     else:
-        return "Not Found"
+        raise ValueError('IDType has to be either SPECULOOS or GAIA')
+        return None

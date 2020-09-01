@@ -4,17 +4,10 @@ import glob
 import numpy as np
 from os import path
 from tqdm import tqdm
-from lxml import etree
 from astropy.io import fits
 from astropy.io import fits
 from io import BytesIO
 from .Functions import GetID
-
-def Combine():
-    '''
-    This folder saves the file in the proper combination manner
-    '''
-    pass
 
 def get_file_from_url(url, user, password):
     resp = requests.get(url, auth=(user, password))
@@ -39,7 +32,6 @@ def DownloadData(SpNumber, user="", password=""):
     '''
 
     GAIAID =  GetID(SpNumber,IdType="SPECULOOS")
-    GAIAID = 1262763648230973440
 
     #Construct the path
     url = "http://www.mrao.cam.ac.uk/SPECULOOS/portal_v2/php/get_dir.php?id=%s&date=&filter=&telescope="  %GAIAID
@@ -89,38 +81,42 @@ def DownloadData(SpNumber, user="", password=""):
         rGET7 = requests.get(urlGet7, auth=(user, password))
         rGET8 = requests.get(urlGet8, auth=(user, password))
 
-        SaveFileName3 = "TempFolder/%s_%s_SPC-Artemis_ap3.txt" %(str(SpNumber), Date)
-        SaveFileName4 = "TempFolder/%s_%s_SPC-Artemis_ap4.txt" %(str(SpNumber), Date)
-        SaveFileName5 = "TempFolder/%s_%s_SPC-Artemis_ap5.txt" %(str(SpNumber), Date)
-        SaveFileName6 = "TempFolder/%s_%s_SPC-Artemis_ap6.txt" %(str(SpNumber), Date)
-        SaveFileName7 = "TempFolder/%s_%s_SPC-Artemis_ap7.txt" %(str(SpNumber), Date)
-        SaveFileName8 = "TempFolder/%s_%s_SPC-Artemis_ap8.txt" %(str(SpNumber), Date)
+        SaveFileName3 = "TempFolder/%s_%s_SPC_ap3.txt" %(str(SpNumber), Date)
+        SaveFileName4 = "TempFolder/%s_%s_SPC_ap4.txt" %(str(SpNumber), Date)
+        SaveFileName5 = "TempFolder/%s_%s_SPC_ap5.txt" %(str(SpNumber), Date)
+        SaveFileName6 = "TempFolder/%s_%s_SPC_ap6.txt" %(str(SpNumber), Date)
+        SaveFileName7 = "TempFolder/%s_%s_SPC_ap7.txt" %(str(SpNumber), Date)
+        SaveFileName8 = "TempFolder/%s_%s_SPC_ap8.txt" %(str(SpNumber), Date)
 
 
         with open(SaveFileName3,'w') as f:
-            f.write(rGET3.text)
+            if len(rGET3.text)>200:
+                f.write(rGET3.text)
 
         with open(SaveFileName4,'w') as f:
-            f.write(rGET4.text)
+            if len(rGET4.text)>200:
+                f.write(rGET4.text)
 
         with open(SaveFileName5,'w') as f:
-            f.write(rGET5.text)
+            if len(rGET5.text)>200:
+                f.write(rGET5.text)
 
         with open(SaveFileName6,'w') as f:
-            f.write(rGET6.text)
+            if len(rGET6.text)>200:
+                f.write(rGET6.text)
 
         with open(SaveFileName7,'w') as f:
-            f.write(rGET7.text)
+            if len(rGET7.text)>200:
+                f.write(rGET7.text)
 
         with open(SaveFileName8,'w') as f:
-            f.write(rGET8.text)
+            if len(rGET8.text)>200:
+                f.write(rGET8.text)
 
         print("data Saved File for %s" %Date)
 
     print("Now combining data to a single file")
     CombineData(SpNumber)
-
-
 
 
 def CombineData(SpNumber):
@@ -134,11 +130,14 @@ def CombineData(SpNumber):
 
         AllData = []
         for FileItem in CurrentFileList:
-            DataText = np.genfromtxt(FileItem, skip_header=1)
-            X,Y = np.shape(DataText)
+            try:
+                DataText = np.genfromtxt(FileItem, skip_header=1)
+                X,Y = np.shape(DataText)
 
-            CurrentData = np.empty((X, 9))
-            CurrentData[:,0] =  DataText[:,1]
+                CurrentData = np.empty((X, 9))
+                CurrentData[:,0] =  DataText[:,1]
+            except:
+                continue
             CurrentData[:,1] =  DataText[:,3]
             CurrentData[:,2] =  DataText[:,6]
             CurrentData[:,3] =  DataText[:,7]
@@ -158,4 +157,4 @@ def CombineData(SpNumber):
             print("Saving at the current directory")
             np.savetxt("%s_%sAp.txt" %(SpNumber, Aper), AllData, header=Parameters)
 
-    os.system("rm -rf TempFolder")        
+    os.system("rm -rf TempFolder")

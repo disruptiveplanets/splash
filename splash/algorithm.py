@@ -9,6 +9,7 @@ import itertools
 import numpy as np
 import multiprocessing as mp
 import os
+import glob
 from tqdm import tqdm
 import pickle
 from transitleastsquares import transitleastsquares
@@ -56,7 +57,7 @@ class GeneralTransitSearch:
         self.transitSearchParam = ParseFile(Filepath)
 
 
-    def Run(self, Target, ShowPlot=False, SavePlot=False, SaveData=True):
+    def Run(self, Target, ShowPlot=False, SavePlot=False, SaveData=True, SaveAmplifiedLC=False):
         '''
         Runs SVD algorithm to find the
 
@@ -74,6 +75,9 @@ class GeneralTransitSearch:
 
         SaveData: bool
                   Save the pickled data of pickled data
+
+        SaveAmplifiedLC: bool
+                  Save Figures and data for the amplified light curves
         '''
 
         self.TStepSize = float(self.transitSearchParam["TStepSize"])/(24.0*60.0)
@@ -83,6 +87,15 @@ class GeneralTransitSearch:
         self.BasisItems = self.transitSearchParam['Params'].split(",")
         self.TLS_Status = False
         self.TransitMatch_Status = False
+        self.SaveAmplifiedLC = SaveAmplifiedLC
+
+        if self.SaveAmplifiedLC:
+            self.AmplifiedFigLoc = "%s/AmplifiedLCs/Figures" %Target.ResultDir
+            self.AmplifiedDataLoc = "%s/AmplifiedLCs/Data" %Target.ResultDir
+            os.system("mkdir %s/AmplifiedLCs" %Target.ResultDir)
+            os.system("mkdir %s" %self.AmplifiedFigLoc)
+            os.system("mkdir %s" %self.AmplifiedDataLoc)
+
 
         NCPUs = int(self.transitSearchParam["NCPUs"])
 
@@ -147,6 +160,7 @@ class GeneralTransitSearch:
 
                 Title = Target.ParamNames[self.BestBasisColumns]
                 TitleText = "  ".join(Title)
+                TitleText
 
 
                 if ShowPlot or SavePlot:
@@ -254,6 +268,156 @@ class GeneralTransitSearch:
                         plt.show()
                     plt.close('all')
 
+                if SaveAmplifiedLC:
+
+                    AmplifiedLCList = np.array(glob.glob(self.AmplifiedDataLoc+"/*.txt"))
+                    AmplifiedT0List = np.array([float(Item.split("/")[-1][:10]) for Item in AmplifiedLCList])
+
+                    BestPixelRow, BestPixelCol = np.where(self.CurrentMetricMatrix==np.max(self.CurrentMetricMatrix))
+                    BestT0 = self.T0_Values[BestPixelRow][0]
+                    BestTDur = self.TDurValues[BestPixelCol][0]
+
+                    #Bin the data
+                    NumBins = int((max(self.CurrentTime) - min(self.CurrentTime))*24.0*60.0/10.0)
+                    NData  = len(self.CurrentTime)/NumBins
+                    self.CurrentResidual = self.CurrentFlux - self.BestModel
+                    self.BinnedTime = binned_statistic(self.CurrentTime, self.CurrentTime, bins=NumBins)[0]
+                    self.BinnedFlux = binned_statistic(self.CurrentTime, self.CurrentFlux, bins=NumBins)[0]
+
+                    #Find the running errorbar
+                    self.BinnedResidual = RunningResidual(self.CurrentTime, self.CurrentFlux-self.BestModel, NumBins)
+
+                    T0_Int = int(min(self.T0_Values))
+
+                    XPlot = self.CurrentTime - T0_Int
+                    YPlot = self.CurrentFlux
+                    T0Offset = np.mean(np.diff(self.T0_Values))/2.0
+                    TDurOffSet = np.mean(np.diff(self.TDurValues))/2
+
+                    MaxLikelihoodValues = np.max(self.CurrentMetricMatrix,axis=1)
+                    PeakLocations = np.where(FindLocalMaxima(MaxLikelihoodValues, NData=4))[0]
+                    NumPeaks = len(PeakLocations)
+                    T0Peaks = self.T0_Values[PeakLocations]
+
+
+                    Row=20
+                    Col = 14+7*NumPeaks
+                    GridRow = 25+7*NumPeaks
+                    GridCol = 20
+
+                    fig= plt.figure(figsize=(Row,Col))
+
+                    spec = gridspec.GridSpec(nrows=GridRow, ncols=GridCol, figure=fig)
+                    spec.update(hspace=0.025)
+                    spec.update(wspace=0.0)
+
+                    ax0 = fig.add_subplot(spec[0:8, 0:18])
+                    ax1 = fig.add_subplot(spec[8:11, 0:18])
+                    ax2 = fig.add_subplot(spec[11:20, 0:18])
+                    ax3 = fig.add_subplot(spec[11:20, 18:20])
+
+                    ax0.plot(self.CurrentTime - T0_Int, self.CurrentFlux,\
+                               linestyle="None", color="cyan", marker="o", \
+                               markersize=4.5)
+
+                    ax0.errorbar(self.BinnedTime - T0_Int, self.BinnedFlux, \
+                                   yerr=self.BinnedResidual,\
+                                   marker="o", markersize=7, linestyle="None", \
+                                   capsize=3, elinewidth=2, \
+                                   color="black", ecolor="black")
+
+                    MedianFlux = np.median(self.CurrentFlux)
+                    ax0.plot(self.CurrentTime - T0_Int, self.BestModel, "g-", lw=2)
+                    ax0.plot(self.CurrentTime - T0_Int, MedianFlux+self.BestModel-self.DetrendedModel, \
+                    "r-", lw=5.0, label="Model")
+
+                    ax0.axvline(BestT0 - T0_Int, color="red")
+                    ax0.set_xlim(min(self.T0_Values- T0_Int-T0Offset/2), max(self.T0_Values- T0_Int)+T0Offset/2)
+
+                    YLower, YUpper = np.percentile(self.CurrentFlux, [2.0, 98.0])
+                    ax0.set_ylim([YLower, YUpper])
+                    ax0.set_xticklabels([])
+                    ax0.set_ylabel("Normalized Flux", fontsize=20)
+                    ax0.set_title(TitleText)
+
+
+                    ax1.axvline(x=BestT0,color="red", lw=2.0, linestyle="-")
+
+                    for Location in PeakLocations:
+                        ax1.plot(self.T0_Values[Location], MaxLikelihoodValues[Location], color="red", \
+                        marker="d", markersize=10, zorder=20)
+                        #ax1.axvline(x=self.T0_Va``lues[Location],color="blue", lw=2.5, linestyle=":")
+
+                    ax1.plot(self.T0_Values, MaxLikelihoodValues, color="black", marker="2", markersize=15, \
+                    linestyle=":", lw=0.5)
+                    ax1.set_ylim([min([0.6*min(MaxLikelihoodValues), 1.4*min(MaxLikelihoodValues)]), 1.4*max(MaxLikelihoodValues)])
+                    ax1.set_yticks([])
+                    ax1.set_ylabel("Likelihood", fontsize=15)
+                    ax1.set_xticks([])
+                    ax1.set_xlim(min(self.T0_Values-T0Offset/2), max(self.T0_Values)+T0Offset/2)
+
+
+                    ax2.set_ylabel("Transit Duration (mins)", fontsize=20)
+                    ax2.imshow(self.CurrentMetricMatrix.T, aspect='auto', origin='lower', \
+                          extent=[min(self.T0_Values- T0_Int-T0Offset), max(self.T0_Values - T0_Int+T0Offset), \
+                          min(self.TDurValues-TDurOffSet)*24.0*60.0, \
+                          max(self.TDurValues+TDurOffSet)*24.0*60.0],
+                          norm=colors.PowerNorm(gamma=1./2.0))
+
+                    ax2.axvline(BestT0 - T0_Int, color="black", linestyle=":", lw=1.5)
+                    ax2.axhline(BestTDur*24.0*60.0, color="black", linestyle=":", lw=1.5)
+                    ax2.set_ylabel("Transit Duration (mins)", fontsize=20)
+                    ax2.set_xlabel("Time %s JD " %(T0_Int), fontsize=20)
+
+                    HighestColumn = np.where(np.max(MaxLikelihoodValues)==MaxLikelihoodValues)[0][0]
+                    TraDurColumn = self.CurrentMetricMatrix[HighestColumn,:]
+                    Index  = np.arange(len(TraDurColumn))
+                    ax3.plot(TraDurColumn, Index,"r-", lw=2.5)
+                    ax3.set_xticks([])
+                    ax3.set_yticks([])
+
+                    for Counter,CurrentT0Value in enumerate(T0Peaks):
+                        StartRow=22+Counter*7
+                        StopRow =22+(Counter+1)*7
+
+                        FileIndex = np.argmin(np.abs(AmplifiedT0List-CurrentT0Value))
+                        SelectedFile = AmplifiedLCList[FileIndex]
+
+                        ax = fig.add_subplot(spec[StartRow:StopRow, 0:18])
+
+                        FileData = np.loadtxt(SelectedFile, delimiter=",")
+                        #FindMe
+
+                        TimeSeries = FileData[:,0] - T0_Int
+                        Model = FileData[:,2]
+                        DetrendedFlux = FileData[:,3]
+
+                        ax.plot(TimeSeries, self.CurrentFlux,\
+                                   linestyle="None", color="cyan", marker="o", \
+                                   markersize=4.5)
+
+                        ax.errorbar(self.BinnedTime - T0_Int, self.BinnedFlux, \
+                                       yerr=self.BinnedResidual,\
+                                       marker="o", markersize=7, linestyle="None", \
+                                       capsize=3, elinewidth=2, \
+                                       color="black", ecolor="black")
+
+
+                        ax.axvline(x=CurrentT0Value-T0_Int, color="red", linestyle=":")
+
+                        ax.plot(TimeSeries, Model, "r-")
+
+                        ax.plot(TimeSeries, Model-DetrendedFlux+MedianFlux, "g-")
+
+                        ax.set_xlim(min(self.T0_Values- T0_Int-T0Offset/2), max(self.T0_Values- T0_Int)+T0Offset/2)
+
+                    SaveName = self.AmplifiedFigLoc+"/"+str(NightNum+1).zfill(5)+".png"
+                    plt.savefig(SaveName)
+                    plt.close('all')
+
+
+
+
         #Convert lists to array
         self.AllModeledT0 = np.array(self.AllModeledT0)
         self.AllDetrendedFlux = np.array(self.AllDetrendedFlux)
@@ -343,8 +507,6 @@ class GeneralTransitSearch:
         curve for each night.
 
 
-        Input
-        =============
         Parameter:
         -----------
         Target: class
@@ -427,6 +589,7 @@ class GeneralTransitSearch:
                 T0_Index = np.argmin(np.abs(self.T0_Values-T0))
                 TDur_Index = np.argmin(np.abs(self.TDurValues-TDur))
 
+                #Metric to determine which is the best target from the night
                 #Metric = (Coeff[-2]/Uncertainty[-2])
                 #Metric = (Coeff[-2]/Uncertainty[-2])/(Residual)
                 Metric = (Coeff[-2]/Uncertainty[-2])/(Residual*Residual)
@@ -440,12 +603,17 @@ class GeneralTransitSearch:
                     self.BestDetrendedModel = self.CurrentFlux - DetrendedFlux
                     self.CurrentSTD = np.std(self.CurrentFlux - Model)
 
+
                 if self.CurrentMetricMatrix[T0_Index, TDur_Index]<Metric:
+                    T0BestMetric = np.max(self.CurrentMetricMatrix[T0_Index,:])<Metric
                     self.CurrentResidualMatrix[T0_Index, TDur_Index] = Residual
                     self.CurrentTransitDepthMatrix[T0_Index, TDur_Index] = Coeff[-2]
                     self.CurrentUnctyTransitMatrix[T0_Index, TDur_Index] = Uncertainty[-2]
                     self.CurrentMetricMatrix[T0_Index, TDur_Index] = Metric
 
+                    if self.SaveAmplifiedLC and T0BestMetric:
+                        self.CurrentAmpSaveName = os.path.join(self.AmplifiedDataLoc,str("%.5f" %T0))+".txt"
+                        np.savetxt(self.CurrentAmpSaveName, np.transpose((self.CurrentTime, self.CurrentFlux, Model, DetrendedFlux)), delimiter=",",header="Time, Flux, Model, DetrendedFlux")
         #Replace the missed value with minima
         #InfLocation = np.where(~np.isfinite(self.CurrentMetricMatrix))
         InfLocation = np.where(np.logical_or(~np.isfinite(self.CurrentMetricMatrix),np.abs(self.CurrentTransitDepthMatrix)>0.3))
@@ -461,6 +629,7 @@ class GeneralTransitSearch:
         self.AllSTD.append(self.CurrentSTD)
         self.AllCoeffValues.append(self.BestCoeff)
         return 1
+
 
 
     def PeriodicSearch(self, Target, MinPeriod=0.5, method="TransitMatch", SavePlot=True, ShowPlot=False):
@@ -526,7 +695,7 @@ class GeneralTransitSearch:
             self.DoubleAnneal(Target, MinPeriod, ShowPlot, SavePlot)
 
         else:
-            input("No such method was found")
+            raise ValueError("No such method was found, Has to be TLS or DoubleAnneal")
 
 
 
@@ -1072,7 +1241,7 @@ class GeneralTransitSearch:
            report_fit(UniqueFitName)
            print("use basin hopping...")
 
-           input("Wait here will you...")
+           input("This is not yet finalized...")
 
 
            #Use lmfit method
