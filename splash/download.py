@@ -1,6 +1,6 @@
 import os
 import requests
-
+import glob
 import numpy as np
 from os import path
 from tqdm import tqdm
@@ -8,66 +8,43 @@ from lxml import etree
 from astropy.io import fits
 from astropy.io import fits
 from io import BytesIO
+from .Functions import GetID
+
+def Combine():
+    '''
+    This folder saves the file in the proper combination manner
+    '''
+    pass
 
 def get_file_from_url(url, user, password):
     resp = requests.get(url, auth=(user, password))
     return BytesIO(resp.content)
 
 
-def cambridge_download_product(
-    destination,
-    user,
-    password,
-    target="",
-    date="",
-    telescope="",
-    stack="global",
-    overwrite=False,
-):
-    """
-    Function written by Peter Pedersen.
+def DownloadData(SpNumber, user="", password=""):
+    '''
+    This function download Artemis data processed using cambridge pipeline from Cambridge server.
 
-    Download photometry products from cambridge archive in the following file tree:
-
-    .. code-block::
-
-        Target/
-         │
-         └── Telescope_date_target_filter/
-              ├── Telescope_date_target_filter_photometry.phots
-              └── Telescope_date_target_filter_stack.fits
-
-    Parameters
+    Input
     ----------
-    destination: string (path)
-        local destination path
-    target : string
-        target name in the cambridge archive
-    date : string
-        date with format YYYYmmdd (e.g. 20190130)
-    telescope : string
-        telescope name in the cambridge archive
-    process_lc: bool
-        whether to process the lighturve and store it in the ``phots``file
-    user : string
-        username for the cambridge archive
-    password : string
-        password for the cambridge archive
-    target_list_path : string path
-        local path of the target list file (csv)
-    target_gaia_id : string
-        gaia id of the target (optional, will be found from the target list)
 
-    """
-    destination = path.abspath(destination)
+    SpNumber:  string
+                SPECULOOS target number such as SP0025+5422
 
-    if not path.exists(destination):
-        print("Creating destination path:", destination)
-        os.mkdir(destination)
+    user: string
+          Username to access the Cambridge data
 
-    url = "http://www.mrao.cam.ac.uk/SPECULOOS/portal/get_file.php?telescope={}&date={}&id={}&filter=&file=../../*.fits".format(
-        telescope, date, target
-    )
+    password: string
+              password to access the Cambridge data
+    '''
+
+    GAIAID =  GetID(SpNumber,IdType="SPECULOOS")
+    GAIAID = 1262763648230973440
+
+    #Construct the path
+    url = "http://www.mrao.cam.ac.uk/SPECULOOS/portal_v2/php/get_dir.php?id=%s&date=&filter=&telescope="  %GAIAID
+
+
 
     resp = requests.get(url, auth=(user, password))
     assert (
@@ -75,35 +52,110 @@ def cambridge_download_product(
     ), "Wrong username or password used to access data, please check .specphot.config file"
     assert (
         resp.content != b"null" and resp.content != b"\r\nnull"
-    ), "Your request is not matching any available data in the Cambridge archive. To see available data, please check http://www.mrao.cam.ac.uk/SPECULOOS/portal/"
-    output_fits_urls = np.array(
-        [
-            ("http://www.mrao.cam.ac.uk/SPECULOOS/" + ur[4::]).replace("\\", "")
-            for ur in eval(resp.content)
-        ]
-    )
+    ), "Your request is not matching any available data in the Cambridge archive. To see available data, please check http://www.mrao.cam.ac.uk/SPECULOOS/portal_v2/"
 
 
-    for url in tqdm(output_fits_urls):
-        if "output" in url:
-            target_name = url.split("/")[7]
-            telesope = url.split("/")[4]
-            date = url.split("/")[6]
-            filter = url.split("/")[9]
+    Content = eval(resp.content)
 
-            denominator = "{}_{}_{}_{}".format(telesope, date, target_name, filter)
+    Directories = Content['dirs']
+    DateValues = Content['date_vals']
+    FilterValues = Content['filter_vals']
+    BaseLocation = "http://www.mrao.cam.ac.uk/SPECULOOS"
+
+    CompletePath = []
+    for Directory in Directories:
+        ConstructedPath = BaseLocation+Directory[6:].replace("\\","")+"lightcurves/"
+        CompletePath.append(ConstructedPath)
+
+    #Clean the TempFolder
+    os.system("rm TempFolder/*")
+
+    for Path, Filter, Date in zip(CompletePath, FilterValues, DateValues):
+
+        if not(os.path.exists("TempFolder")):
+            os.system("mkdir TempFolder")
+
+        urlGet3 = Path+"%s_%s_%s_3_MCMC" %(GAIAID, Filter, Date)
+        urlGet4 = Path+"%s_%s_%s_4_MCMC" %(GAIAID, Filter, Date)
+        urlGet5 = Path+"%s_%s_%s_5_MCMC" %(GAIAID, Filter, Date)
+        urlGet6 = Path+"%s_%s_%s_6_MCMC" %(GAIAID, Filter, Date)
+        urlGet7 = Path+"%s_%s_%s_7_MCMC" %(GAIAID, Filter, Date)
+        urlGet8 = Path+"%s_%s_%s_8_MCMC" %(GAIAID, Filter, Date)
+
+        rGET3 = requests.get(urlGet4, auth=(user, password))
+        rGET4 = requests.get(urlGet4, auth=(user, password))
+        rGET5 = requests.get(urlGet5, auth=(user, password))
+        rGET6 = requests.get(urlGet6, auth=(user, password))
+        rGET7 = requests.get(urlGet7, auth=(user, password))
+        rGET8 = requests.get(urlGet8, auth=(user, password))
+
+        SaveFileName3 = "TempFolder/%s_%s_SPC-Artemis_ap3.txt" %(str(SpNumber), Date)
+        SaveFileName4 = "TempFolder/%s_%s_SPC-Artemis_ap4.txt" %(str(SpNumber), Date)
+        SaveFileName5 = "TempFolder/%s_%s_SPC-Artemis_ap5.txt" %(str(SpNumber), Date)
+        SaveFileName6 = "TempFolder/%s_%s_SPC-Artemis_ap6.txt" %(str(SpNumber), Date)
+        SaveFileName7 = "TempFolder/%s_%s_SPC-Artemis_ap7.txt" %(str(SpNumber), Date)
+        SaveFileName8 = "TempFolder/%s_%s_SPC-Artemis_ap8.txt" %(str(SpNumber), Date)
 
 
-            if not path.exists("data"):
-                os.mkdir("data")
-            date_folder = os.path.join("data", target_name)
+        with open(SaveFileName3,'w') as f:
+            f.write(rGET3.text)
+
+        with open(SaveFileName4,'w') as f:
+            f.write(rGET4.text)
+
+        with open(SaveFileName5,'w') as f:
+            f.write(rGET5.text)
+
+        with open(SaveFileName6,'w') as f:
+            f.write(rGET6.text)
+
+        with open(SaveFileName7,'w') as f:
+            f.write(rGET7.text)
+
+        with open(SaveFileName8,'w') as f:
+            f.write(rGET8.text)
+
+        print("data Saved File for %s" %Date)
+
+    print("Now combining data to a single file")
+    CombineData(SpNumber)
 
 
 
-            if not path.exists(date_folder):
-                os.mkdir(date_folder)
 
-            product_path = path.join(date_folder, "{}_output.fits".format(denominator))
+def CombineData(SpNumber):
+    '''
+    Combines the data in the TempFolder when downloaded
+    '''
 
+    Parameters= "BJDMID, FLUX, DX, DY, FWHM, FWHM_X, FWHM_Y, SKY, AIRMASS"
+    for Aper in range(3,9):
+        CurrentFileList = glob.glob("TempFolder/*ap%s.txt" %Aper)
 
-            fits.open(get_file_from_url(url, user, password)).writeto(product_path, overwrite=True)
+        AllData = []
+        for FileItem in CurrentFileList:
+            DataText = np.genfromtxt(FileItem, skip_header=1)
+            X,Y = np.shape(DataText)
+
+            CurrentData = np.empty((X, 9))
+            CurrentData[:,0] =  DataText[:,1]
+            CurrentData[:,1] =  DataText[:,3]
+            CurrentData[:,2] =  DataText[:,6]
+            CurrentData[:,3] =  DataText[:,7]
+            CurrentData[:,4] =  DataText[:,8]
+            CurrentData[:,5] =  DataText[:,9]
+            CurrentData[:,6] =  DataText[:,10]
+            CurrentData[:,7] =  DataText[:,11]
+            CurrentData[:,8] =  DataText[:,12]
+            AllData.extend(CurrentData)
+        AllData = np.array(AllData)
+        AllTime = AllData[:,0]
+        AllData = AllData[np.argsort(AllTime)]
+        if os.path.exists("data"):
+            print("Saving inside data")
+            np.savetxt("data/%s_%sAp.txt" %(SpNumber, Aper), AllData, header=Parameters)
+        else:
+            print("Saving at the current directory")
+            np.savetxt("%s_%sAp.txt" %(SpNumber, Aper), AllData, header=Parameters)
+
+    os.system("rm -rf TempFolder")        

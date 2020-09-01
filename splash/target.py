@@ -56,7 +56,7 @@ class Target:
         ParamName: The name of the parameters.
         ParamValue: The values of the parameters.
         '''
-
+        print("Local target...")
         if len(Location)>0 and len(Name)>0:
             if version==0:
                 print("Loading from txt file.")

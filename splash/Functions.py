@@ -480,11 +480,13 @@ def GetID(Name, IdType=None):
     SpName = Data[:,0]
     SpName = np.array([Item.upper() for Item in SpName])
     GaiaID = Data[:,2].astype(np.int)
-
     if "SPECULOOS" in IdType.upper():
+        Name = Name.upper().replace("B","")
+        print("Fetching GAIA ID for :", Name)
         return GaiaID[SpName == Name.upper()][0]
 
     elif "GAIA" in IdType.upper():
+        print("Fetching SPECULOOS ID for GAIA ID", Name)
         return SpName[GaiaID==int(Name)][0]
     else:
         return "Not Found"
