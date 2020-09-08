@@ -17,7 +17,7 @@ from scipy.signal import gaussian
 from scipy.stats import binned_statistic
 from scipy.interpolate import UnivariateSpline
 from scipy.ndimage import filters
-
+import splash
 
 def fold_data(Time , Flux, Period):
   '''
@@ -484,7 +484,8 @@ def GetIDOnline(Name, IdType=None):
     Returns: string
             If SPECULOOS ID is provided, returns GAIA ID and vice-versa.
     '''
-    FileContent = open("database/PhpOutput.txt",'r+').readlines()[0]
+    FilePath = splash.__path__[0]+"database/PhpOutput.txt"
+    FileContent = open(FilePath,'r+').readlines()[0]
     ItemList = FileContent.split(",")
     Sp_ID_List = []
     GAIA_ID_List = []
@@ -540,7 +541,8 @@ def GetID(Name, IdType=None):
             If SPECULOOS ID is provided, returns GAIA ID and vice-versa.
     '''
     #Loading the database
-    Data = np.loadtxt("./database/Targets.csv", delimiter=",", skiprows=1, dtype=np.str)
+    FilePath = splash.__path__[0]+"/database/Targets.csv"
+    Data = np.loadtxt(FilePath, delimiter=",", skiprows=1, dtype=np.str)
     SpName = Data[:,0]
     SpName = np.array([Item.upper() for Item in SpName])
     GaiaID = Data[:,2].astype(np.int)
