@@ -14,8 +14,9 @@ setuptools.setup(
     url="https://github.com/prajwal309/splash",
     packages=setuptools.find_packages(),
     include_package_data = True,
-
-
+    package_data={
+        "database":["*.txt","*.csv"]
+    },
     classifiers=[
         "Programming Language :: Python :: 3.6",
         "License :: OSI Approved :: MIT License",
