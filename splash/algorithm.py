@@ -14,6 +14,7 @@ from tqdm import tqdm
 import pickle
 from transitleastsquares import transitleastsquares
 import splash
+from astropy.time import Time
 
 from scipy.stats import binned_statistic, chi2
 from math import ceil
@@ -62,7 +63,7 @@ class GeneralTransitSearch:
             self.transitSearchParam = ParseFile(Filepath)
         else:
             print("Reading from default search parameters.")
-            self.transitSearchParam = ParseFile(os.path.join(splash.__path__,"SearchParams.config")
+            self.transitSearchParam = ParseFile(os.path.join(splash.__path__,"SearchParams.config"))
 
     def Run(self, Target, ShowPlot=False, SavePlot=False, SaveData=True, SaveAmplifiedLC=False):
         '''
@@ -166,8 +167,7 @@ class GeneralTransitSearch:
 
 
                 Title = Target.ParamNames[self.BestBasisColumns]
-                TitleText = "  ".join(Title)
-                TitleText
+                TitleText = "  ".join(Title)+"\n"
 
 
                 if ShowPlot or SavePlot:
@@ -175,6 +175,10 @@ class GeneralTransitSearch:
                     BestPixelRow, BestPixelCol = np.where(self.CurrentMetricMatrix==np.max(self.CurrentMetricMatrix))
                     BestT0 = self.T0_Values[BestPixelRow][0]
                     BestTDur = self.TDurValues[BestPixelCol][0]
+
+                    TitleText += "T0: "+str(round(BestT0,5))+"\n"
+                    TitleText += "TDur: "+str(round(BestTDur,1))+"\n"
+                    TitleText += Time(2450000+BestT0,format='jd').isot[:10]
 
                     #Bin the data
                     NumBins = int((max(self.CurrentTime) - min(self.CurrentTime))*24.0*60.0/10.0)
@@ -334,9 +338,9 @@ class GeneralTransitSearch:
                                    color="black", ecolor="black")
 
                     MedianFlux = np.median(self.CurrentFlux)
-                    ax0.plot(self.CurrentTime - T0_Int, self.BestModel, "g-", lw=2)
-                    ax0.plot(self.CurrentTime - T0_Int, MedianFlux+self.BestModel-self.DetrendedModel, \
-                    "r-", lw=5.0, label="Model")
+                    #ax0.plot(self.CurrentTime - T0_Int, self.BestModel, "g-", lw=2)
+                    #ax0.plot(self.CurrentTime - T0_Int, MedianFlux+self.BestModel-self.DetrendedModel, \
+                    #"r-", lw=5.0, label="Model")
 
                     ax0.axvline(BestT0 - T0_Int, color="red")
                     ax0.set_xlim(min(self.T0_Values- T0_Int-T0Offset/2), max(self.T0_Values- T0_Int)+T0Offset/2)
