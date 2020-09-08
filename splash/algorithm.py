@@ -13,6 +13,7 @@ import glob
 from tqdm import tqdm
 import pickle
 from transitleastsquares import transitleastsquares
+import splash
 
 from scipy.stats import binned_statistic, chi2
 from math import ceil
@@ -53,9 +54,15 @@ class GeneralTransitSearch:
         '''
         Initialized the transit search parameters from Search.ini
         '''
-        Filepath = os.path.join(os.getcwd(),"SearchParams.config")
-        self.transitSearchParam = ParseFile(Filepath)
 
+        Filepath = os.path.join(os.getcwd(),"SearchParams.config")
+
+        if os.path.exists(Filepath):
+            print("Using user defined search parameters.")
+            self.transitSearchParam = ParseFile(Filepath)
+        else:
+            print("Reading from default search parameters.")
+            self.transitSearchParam = ParseFile(os.path.join(splash.__path__,"SearchParams.config")
 
     def Run(self, Target, ShowPlot=False, SavePlot=False, SaveData=True, SaveAmplifiedLC=False):
         '''

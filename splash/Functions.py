@@ -484,7 +484,7 @@ def GetIDOnline(Name, IdType=None):
     Returns: string
             If SPECULOOS ID is provided, returns GAIA ID and vice-versa.
     '''
-    FilePath = splash.__path__[0]+"database/PhpOutput.txt"
+    FilePath = splash.__path__[0]+"/PhpOutput.txt"
     FileContent = open(FilePath,'r+').readlines()[0]
     ItemList = FileContent.split(",")
     Sp_ID_List = []
@@ -543,7 +543,7 @@ def GetID(Name, IdType=None):
             If SPECULOOS ID is provided, returns GAIA ID and vice-versa.
     '''
     #Loading the database
-    FilePath = splash.__path__[0]+"/database/Targets.csv"
+    FilePath = splash.__path__[0]+"/Targets.csv"
     Data = np.loadtxt(FilePath, delimiter=",", skiprows=1, dtype=np.str)
     SpName = Data[:,0]
     SpName = np.array([Item.upper() for Item in SpName])
