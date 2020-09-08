@@ -469,11 +469,61 @@ def SplineFlattening(Time, Flux, period, NIter = 4, StdCutOff=2.5, poly=3, knot=
     FluxPred = spl(Time)
     return FluxPred
 
+
 def GetIDOnline(Name, IdType=None):
     '''
-    Function that will get SPECULOOS ID from online
+    Method to get Speculoos ID/GAIA ID from oneline portal
+    #AllTargets="http://www.mrao.cam.ac.uk/SPECULOOS/portal_v2/php/get_targets.php"
+
+    Parameters
+    -----------
+
+    Name: string
+          Either SPECULOOS or GAIA ID
+
+    Returns: string
+            If SPECULOOS ID is provided, returns GAIA ID and vice-versa.
     '''
-    AllTargets="http://www.mrao.cam.ac.uk/SPECULOOS/portal_v2/php/get_targets.php"
+    FileContent = open("database/PhpOutput.txt",'r+').readlines()[0]
+    ItemList = FileContent.split(",")
+    Sp_ID_List = []
+    GAIA_ID_List = []
+    SP_ID_CS_List = []
+
+    LoopNumber = len(ItemList)//3
+
+    for Item in ItemList:
+
+        CurrentID, IDVal = Item.split(":")
+
+        IDVal = IDVal.replace("\"", "")
+        if "SP_ID_CS" in CurrentID.upper():
+            SP_ID_CS_List.append(IDVal.upper())
+        elif "SP_ID" in CurrentID.upper():
+            Sp_ID_List.append(IDVal.upper())
+        elif "GAIA_ID" in CurrentID.upper():
+            GAIA_ID_List.append(int(IDVal))
+
+    Sp_ID_Array = np.array(Sp_ID_List)
+    GAIA_ID_Array = np.array(GAIA_ID_List)
+    if "SPECULOOS" in IdType.upper():
+        Index = [Sp_ID_Array == Name.upper()]
+        if np.sum(Index)>=1:
+            return GAIA_ID_Array[Index][0]
+        else:
+            assert 1==0, ValueError("Speculoos target probably not observed or ID is wrong")
+    elif "GAIA" in IdType.upper():
+        Index = [GAIA_ID_Array == Name.upper()]
+        if np.sum(Index)==1:
+            print(Sp_ID_Array[Index])
+
+            return GAIA_ID_Array[Index][0]
+        else:
+            assert 1==0, ValueError("Speculoos target probably not observed or ID is wrong")
+
+    else:
+        print("The wrong name is passed...")
+        assert 1==0, ValueError("Speculoos target probably not observed or ID is wrong")
     pass
 
 def GetID(Name, IdType=None):
@@ -489,9 +539,8 @@ def GetID(Name, IdType=None):
     Returns: string
             If SPECULOOS ID is provided, returns GAIA ID and vice-versa.
     '''
-
     #Loading the database
-    Data = np.loadtxt("database/Targets.csv", delimiter=",", skiprows=1, dtype=np.str)
+    Data = np.loadtxt("./database/Targets.csv", delimiter=",", skiprows=1, dtype=np.str)
     SpName = Data[:,0]
     SpName = np.array([Item.upper() for Item in SpName])
     GaiaID = Data[:,2].astype(np.int)
@@ -502,13 +551,16 @@ def GetID(Name, IdType=None):
         if np.sum(Index)==1:
             return GaiaID[Index][0]
         else:
-            print("The target is not found in the database")
-            return None
+            GetIDOnline(Name, IdType="SPECULOOS")
+
     elif "GAIA" in IdType.upper():
         print("Fetching SPECULOOS ID for GAIA ID", Name)
         Index= GaiaID==int(Name)
         if np.sum(Index) == 1:
             return SpName[Index][0]
+        else:
+            GetIDOnline(Name, IdType="GAIA")
     else:
+        #GetIDOnline(Name, IdType=None)
         raise ValueError('IDType has to be either SPECULOOS or GAIA')
         return None

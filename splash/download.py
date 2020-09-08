@@ -31,7 +31,11 @@ def DownloadData(SpNumber, user="", password=""):
               password to access the Cambridge data
     '''
 
-    GAIAID =  GetID(SpNumber,IdType="SPECULOOS")
+    if "TRAPPIST-1" in SpNumber:
+        SpName = "Sp2306-0502"
+        GAIAID = 2635476908753563008
+    else:
+        GAIAID =  GetID(SpNumber,IdType="SPECULOOS")
 
     #Construct the path
     url = "http://www.mrao.cam.ac.uk/SPECULOOS/portal_v2/php/get_dir.php?id=%s&date=&filter=&telescope="  %GAIAID
@@ -46,13 +50,17 @@ def DownloadData(SpNumber, user="", password=""):
         resp.content != b"null" and resp.content != b"\r\nnull"
     ), "Your request is not matching any available data in the Cambridge archive. To see available data, please check http://www.mrao.cam.ac.uk/SPECULOOS/portal_v2/"
 
+    print("The value of GAIAID is:", GAIAID)
 
     Content = eval(resp.content)
-
     Directories = Content['dirs']
     DateValues = Content['date_vals']
     FilterValues = Content['filter_vals']
     BaseLocation = "http://www.mrao.cam.ac.uk/SPECULOOS"
+
+    if len(Directories)<1:
+        print("Error downloading the data")
+        return 0
 
     CompletePath = []
     for Directory in Directories:
@@ -117,6 +125,7 @@ def DownloadData(SpNumber, user="", password=""):
 
     print("Now combining data to a single file")
     CombineData(SpNumber)
+    return 1
 
 
 def CombineData(SpNumber):
