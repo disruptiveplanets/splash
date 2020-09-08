@@ -3,13 +3,13 @@
 
 
 ## Developers
-Prajwal Niraula, Lionel Garcia, Alex Quach
+Prajwal Niraula, Lionel Garcia, Artem Burdanov, Benjamin Rackham
 
 ## Email:
 prajwalniraula@gmail.com, lionel.garcia@student.uliege.be
 
 ## Additional Team Members:
-Julien de Wit, Artem Burdanov, Benjamin Rackham
+Julien de Wit
 
 # Description
 SPLASH (Speculoos PLAnet SearcH) is a module that works with cambridge products in order to detect planets. SPLASH is powered by SVD, and it finds the best basis vector that explains the trend in data while preserving box like transit shapes. Current version is meant to work with old/new version of SPECULOOS Cambridge Pipeline products. Also it is meant to work with TRAPPHOT products. SPLASH also utilizes multiprocessing if resources are available to improve the speed of the algorithm.
@@ -52,3 +52,9 @@ SPLASH creates following subfolders within the output directory:
 # Future development:
 - Algorithm are constantly being improved. A more robust and faster transit matching algorithm is being build, and currently being tested.
 - A completeness test will be performed using the algorithm, and perhaps part of the code.
+
+
+# Example:
+A simple example to download the data is - login details required from Peter:
+from splash.download import DownloadData
+DownloadData(Target,user = "....",password = "....")
