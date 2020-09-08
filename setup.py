@@ -23,7 +23,7 @@ setuptools.setup(
     ],
     python_requires='>=3.5',
     install_requires=[
-        'setuptools>=46.4.0'
+        'setuptools>=46.4.0',
         'astropy>3',  # astropy 3 doesn't install in Python 2, but is req for astroquery
         'matplotlib>=2.0.0',  # earlier has bug for "from astroquery.mast import Catalogs"
         'numpy',
