@@ -527,6 +527,8 @@ def GetIDOnline(Name, IdType=None):
         assert 1==0, ValueError("Speculoos target probably not observed or ID is wrong")
     pass
 
+
+
 def GetID(Name, IdType=None):
     '''
     Method to get Speculoos ID/GAIA ID from viceversa
