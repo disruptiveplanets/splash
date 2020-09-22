@@ -85,7 +85,7 @@ def DownloadData(SpNumber, user="", password=""):
         urlGet7 = Path+"%s_%s_%s_7_MCMC" %(GAIAID, Filter, Date)
         urlGet8 = Path+"%s_%s_%s_8_MCMC" %(GAIAID, Filter, Date)
 
-        rGET3 = requests.get(urlGet4, auth=(user, password))
+        rGET3 = requests.get(urlGet3, auth=(user, password))
         rGET4 = requests.get(urlGet4, auth=(user, password))
         rGET5 = requests.get(urlGet5, auth=(user, password))
         rGET6 = requests.get(urlGet6, auth=(user, password))
@@ -249,14 +249,15 @@ def DownloadFitsData(SpNumber, user="", password=""):
         urlGet7 = Path+"/%s_%s_%s_7_diff.fits" %(GAIAID, Filter, Date)
         urlGet8 = Path+"/%s_%s_%s_8_diff.fits" %(GAIAID, Filter, Date)
 
-        rGET3 = requests.get(urlGet4, auth=(user, password))
+
+        rGET3 = requests.get(urlGet3, auth=(user, password))
         rGET4 = requests.get(urlGet4, auth=(user, password))
         rGET5 = requests.get(urlGet5, auth=(user, password))
         rGET6 = requests.get(urlGet6, auth=(user, password))
         rGET7 = requests.get(urlGet7, auth=(user, password))
         rGET8 = requests.get(urlGet8, auth=(user, password))
 
-        SaveFileName0 = "TempFolder/%s/Catalogue.fits"
+        SaveFileName0 = "TempFolder/%s/Catalogue.fits" %str(SpNumber)
         SaveFileName3 = "TempFolder/%s/%s_SPC_3.fits" %(str(SpNumber), Date)
         SaveFileName4 = "TempFolder/%s/%s_SPC_4.fits" %(str(SpNumber), Date)
         SaveFileName5 = "TempFolder/%s/%s_SPC_5.fits" %(str(SpNumber), Date)
@@ -264,6 +265,11 @@ def DownloadFitsData(SpNumber, user="", password=""):
         SaveFileName7 = "TempFolder/%s/%s_SPC_7.fits" %(str(SpNumber), Date)
         SaveFileName8 = "TempFolder/%s/%s_SPC_8.fits" %(str(SpNumber), Date)
 
+        if not(os.path.exists(SaveFileName0)):
+            rGETCat = requests.get(Catalogue, auth=(user, password))
+            with open(SaveFileName0,'w') as f:
+                if len(rGETCat.text)>200:
+                    f.write(rGETCat.text)
 
         with open(SaveFileName3,'w') as f:
             if len(rGET3.text)>200:
