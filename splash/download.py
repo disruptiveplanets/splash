@@ -34,6 +34,9 @@ def DownloadData(SpNumber, user="", password=""):
     if "TRAPPIST-1" in SpNumber:
         SpName = "Sp2306-0502"
         GAIAID = 2635476908753563008
+    elif "TOI-736" in SpNumber:
+        SpName = "TOI-736"
+        GAIAID = 3562427951852172288
     else:
         GAIAID =  GetID(SpNumber,IdType="SPECULOOS")
 
@@ -45,7 +48,7 @@ def DownloadData(SpNumber, user="", password=""):
     resp = requests.get(url, auth=(user, password))
     assert (
         resp.status_code == 200
-    ), "Wrong username or password used to access data, please check .specphot.config file"
+    ), "Wrong username or password used to access data, please check it with Peter"
     assert (
         resp.content != b"null" and resp.content != b"\r\nnull"
     ), "Your request is not matching any available data in the Cambridge archive. To see available data, please check http://www.mrao.cam.ac.uk/SPECULOOS/portal_v2/"
@@ -167,3 +170,123 @@ def CombineData(SpNumber):
             np.savetxt("%s_%sAp.txt" %(SpNumber, Aper), AllData, header=Parameters)
 
     os.system("rm -rf TempFolder")
+
+
+
+
+def DownloadFitsData(SpNumber, user="", password=""):
+    '''
+    This function download Artemis data processed using cambridge pipeline from Cambridge server.
+
+    Input
+    ----------
+
+    SpNumber:  string
+                SPECULOOS target number such as SP0025+5422
+
+    user: string
+          Username to access the Cambridge data
+
+    password: string
+              password to access the Cambridge data
+    '''
+
+    if "TRAPPIST-1" in SpNumber:
+        SpName = "Sp2306-0502"
+        GAIAID = 2635476908753563008
+    elif "TOI-736" in SpNumber:
+        SpName = "TOI-736"
+        GAIAID = 3562427951852172288
+    else:
+        SpName = SpNumber
+        GAIAID =  GetID(SpNumber,IdType="SPECULOOS")
+
+    #Construct the path
+    url = "http://www.mrao.cam.ac.uk/SPECULOOS/portal_v2/php/get_dir.php?id=%s&date=&filter=&telescope="  %GAIAID
+
+
+
+    resp = requests.get(url, auth=(user, password))
+    assert (
+        resp.status_code == 200
+    ), "Wrong username or password used to access data, please check it with Peter"
+    assert (
+        resp.content != b"null" and resp.content != b"\r\nnull"
+    ), "Your request is not matching any available data in the Cambridge archive. To see available data, please check http://www.mrao.cam.ac.uk/SPECULOOS/portal_v2/"
+
+    print("The value of GAIAID is:", GAIAID)
+
+    Content = eval(resp.content)
+    Directories = Content['dirs']
+    DateValues = Content['date_vals']
+    FilterValues = Content['filter_vals']
+    BaseLocation = "http://www.mrao.cam.ac.uk/SPECULOOS"
+
+    if len(Directories)<1:
+        print("Error downloading the data")
+        return 0
+
+    CompletePath = []
+    for Directory in Directories:
+        ConstructedPath = BaseLocation+Directory[6:].replace("\\","")
+        CompletePath.append(ConstructedPath)
+
+    os.system("rm -rf TempFolder/*")
+
+    for Path, Filter, Date in zip(CompletePath, FilterValues, DateValues):
+
+        print("Downloading Date:", Date)
+        if not(os.path.exists("TempFolder")):
+            os.system("mkdir TempFolder")
+        if not(os.path.exists("TempFolder/%s" %str(SpName))):
+            os.system("mkdir TempFolder/%s" %str(SpName))
+
+        Catalogue = Path+"/1_initial-catalogue.fits"
+        urlGet3 = Path+"/%s_%s_%s_3_diff.fits" %(GAIAID, Filter, Date)
+        urlGet4 = Path+"/%s_%s_%s_4_diff.fits" %(GAIAID, Filter, Date)
+        urlGet5 = Path+"/%s_%s_%s_5_diff.fits" %(GAIAID, Filter, Date)
+        urlGet6 = Path+"/%s_%s_%s_6_diff.fits" %(GAIAID, Filter, Date)
+        urlGet7 = Path+"/%s_%s_%s_7_diff.fits" %(GAIAID, Filter, Date)
+        urlGet8 = Path+"/%s_%s_%s_8_diff.fits" %(GAIAID, Filter, Date)
+
+        rGET3 = requests.get(urlGet4, auth=(user, password))
+        rGET4 = requests.get(urlGet4, auth=(user, password))
+        rGET5 = requests.get(urlGet5, auth=(user, password))
+        rGET6 = requests.get(urlGet6, auth=(user, password))
+        rGET7 = requests.get(urlGet7, auth=(user, password))
+        rGET8 = requests.get(urlGet8, auth=(user, password))
+
+        SaveFileName0 = "TempFolder/%s/Catalogue.fits"
+        SaveFileName3 = "TempFolder/%s/%s_SPC_3.fits" %(str(SpNumber), Date)
+        SaveFileName4 = "TempFolder/%s/%s_SPC_4.fits" %(str(SpNumber), Date)
+        SaveFileName5 = "TempFolder/%s/%s_SPC_5.fits" %(str(SpNumber), Date)
+        SaveFileName6 = "TempFolder/%s/%s_SPC_6.fits" %(str(SpNumber), Date)
+        SaveFileName7 = "TempFolder/%s/%s_SPC_7.fits" %(str(SpNumber), Date)
+        SaveFileName8 = "TempFolder/%s/%s_SPC_8.fits" %(str(SpNumber), Date)
+
+
+        with open(SaveFileName3,'w') as f:
+            if len(rGET3.text)>200:
+                f.write(rGET3.text)
+
+        with open(SaveFileName4,'w') as f:
+            if len(rGET4.text)>200:
+                f.write(rGET4.text)
+
+        with open(SaveFileName5,'w') as f:
+            if len(rGET5.text)>200:
+                f.write(rGET5.text)
+
+        with open(SaveFileName6,'w') as f:
+            if len(rGET6.text)>200:
+                f.write(rGET6.text)
+
+        with open(SaveFileName7,'w') as f:
+            if len(rGET7.text)>200:
+                f.write(rGET7.text)
+
+        with open(SaveFileName8,'w') as f:
+            if len(rGET8.text)>200:
+                f.write(rGET8.text)
+
+        print("data Saved File for %s" %Date)
