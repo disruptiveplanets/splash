@@ -177,7 +177,7 @@ class GeneralTransitSearch:
                     BestTDur = self.TDurValues[BestPixelCol][0]
 
                     TitleText += "T0: "+str(round(BestT0,5))+"\n"
-                    TitleText += "TDur: "+str(round(BestTDur,1))+"\n"
+                    TitleText += "TDur: "+str(round(BestTDur*24.0*60.0,1))+"\n"
                     TitleText += Time(2450000+BestT0,format='jd').isot[:10]
 
                     #Bin the data
@@ -279,8 +279,8 @@ class GeneralTransitSearch:
                         plt.show()
                     plt.close('all')
 
-                if SaveAmplifiedLC:
 
+                if SaveAmplifiedLC:
                     AmplifiedLCList = np.array(glob.glob(self.AmplifiedDataLoc+"/*.txt"))
                     AmplifiedT0List = np.array([float(Item.split("/")[-1][:10]) for Item in AmplifiedLCList])
 
@@ -311,9 +311,9 @@ class GeneralTransitSearch:
                     T0Peaks = self.T0_Values[PeakLocations]
 
 
-                    Row=20
+                    Row=35
                     Col = 14+7*NumPeaks
-                    GridRow = 25+7*NumPeaks
+                    GridRow = 20+7*NumPeaks
                     GridCol = 20
 
                     fig= plt.figure(figsize=(Row,Col))
@@ -349,7 +349,7 @@ class GeneralTransitSearch:
                     ax0.set_ylim([YLower, YUpper])
                     ax0.set_xticklabels([])
                     ax0.set_ylabel("Normalized Flux", fontsize=20)
-                    ax0.set_title(TitleText)
+                    ax0.set_title(TitleText, fontsize=45)
 
 
                     ax1.axvline(x=BestT0,color="red", lw=2.0, linestyle="-")
@@ -403,11 +403,15 @@ class GeneralTransitSearch:
                         Model = FileData[:,2]
                         DetrendedFlux = FileData[:,3]
 
-                        ax.plot(TimeSeries, self.CurrentFlux,\
+
+                        ax.plot(TimeSeries, self.CurrentFlux - DetrendedFlux,\
                                    linestyle="None", color="cyan", marker="o", \
                                    markersize=4.5)
 
-                        ax.errorbar(self.BinnedTime - T0_Int, self.BinnedFlux, \
+                        #Bin the data
+                        NewBinnedFlux =  binned_statistic(TimeSeries, self.CurrentFlux - DetrendedFlux, bins=len(self.BinnedTime))[0]
+
+                        ax.errorbar(self.BinnedTime - T0_Int, NewBinnedFlux, \
                                        yerr=self.BinnedResidual,\
                                        marker="o", markersize=7, linestyle="None", \
                                        capsize=3, elinewidth=2, \
@@ -416,13 +420,14 @@ class GeneralTransitSearch:
 
                         ax.axvline(x=CurrentT0Value-T0_Int, color="red", linestyle=":")
 
-                        ax.plot(TimeSeries, Model, "r-")
+                        #ax.plot(TimeSeries, Model, "r-")
 
-                        ax.plot(TimeSeries, Model-DetrendedFlux+MedianFlux, "g-")
+                        ax.plot(TimeSeries, Model-DetrendedFlux+MedianFlux-1.0, "g-")
 
                         ax.set_xlim(min(self.T0_Values- T0_Int-T0Offset/2), max(self.T0_Values- T0_Int)+T0Offset/2)
 
                     SaveName = self.AmplifiedFigLoc+"/"+str(NightNum+1).zfill(5)+".png"
+                    plt.tight_layout()
                     plt.savefig(SaveName)
                     plt.close('all')
 
