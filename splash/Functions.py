@@ -555,7 +555,8 @@ def GetID(Name, IdType=None):
         if np.sum(Index)==1:
             return GaiaID[Index][0]
         else:
-            GetIDOnline(Name, IdType="SPECULOOS")
+            print("Getting ID Online")
+            return GetIDOnline(Name, IdType="SPECULOOS")
 
     elif "GAIA" in IdType.upper():
         print("Fetching SPECULOOS ID for GAIA ID", Name)

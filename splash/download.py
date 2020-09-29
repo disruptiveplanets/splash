@@ -31,7 +31,7 @@ def DownloadData(SpNumber, user="", password=""):
               password to access the Cambridge data
     '''
 
-    if "TRAPPIST-1" in SpNumber:
+    if "TRAPPIST" in SpNumber:
         SpName = "Sp2306-0502"
         GAIAID = 2635476908753563008
     elif "TOI-736" in SpNumber:
@@ -71,7 +71,7 @@ def DownloadData(SpNumber, user="", password=""):
         CompletePath.append(ConstructedPath)
 
     #Clean the TempFolder
-    os.system("rm TempFolder/*")
+    os.system("rm -rf TempFolder/*")
 
     for Path, Filter, Date in zip(CompletePath, FilterValues, DateValues):
 
