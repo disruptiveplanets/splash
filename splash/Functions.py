@@ -485,7 +485,7 @@ def GetIDOnline(Name, IdType=None):
             If SPECULOOS ID is provided, returns GAIA ID and vice-versa.
     '''
     FilePath = splash.__path__[0]+"/PhpOutput.txt"
-    FileContent = open(FilePath,'r+').readlines()[0]
+    FileContent = open(FilePath,'r').readlines()[0]
     ItemList = FileContent.split(",")
     Sp_ID_List = []
     GAIA_ID_List = []
