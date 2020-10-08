@@ -14,7 +14,7 @@ def get_file_from_url(url, user, password):
     return BytesIO(resp.content)
 
 
-def DownloadData(SpNumber, user="", password=""):
+def DownloadData(SpNumber, GAIAID=None, user="", password=""):
     '''
     This function download Artemis data processed using cambridge pipeline from Cambridge server.
 
@@ -22,7 +22,10 @@ def DownloadData(SpNumber, user="", password=""):
     ----------
 
     SpNumber:  string
-                SPECULOOS target number such as SP0025+5422
+            SPECULOOS target number such as SP0025+5422
+
+    GAIAID:  integer
+            SPECULOOS target number such as SP0025+5422
 
     user: string
           Username to access the Cambridge data
@@ -37,7 +40,7 @@ def DownloadData(SpNumber, user="", password=""):
     elif "TOI-736" in SpNumber:
         SpName = "TOI-736"
         GAIAID = 3562427951852172288
-    else:
+    elif not(GAIAID):
         GAIAID =  GetID(SpNumber,IdType="SPECULOOS")
 
     #Construct the path
