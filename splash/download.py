@@ -25,7 +25,7 @@ def DownloadData(SpNumber, GAIAID=None, user="", password=""):
             SPECULOOS target number such as SP0025+5422
 
     GAIAID:  integer
-            SPECULOOS target number such as SP0025+5422
+            GAIA ID corresponding to the SPECULOOS Target
 
     user: string
           Username to access the Cambridge data
@@ -44,8 +44,7 @@ def DownloadData(SpNumber, GAIAID=None, user="", password=""):
         GAIAID =  GetID(SpNumber,IdType="SPECULOOS")
 
     #Construct the path
-    url = "http://www.mrao.cam.ac.uk/SPECULOOS/portal_v2/php/get_dir.php?id=%s&date=&filter=&telescope="  %GAIAID
-
+    url = "http://www.mrao.cam.ac.uk/SPECULOOS/speculoos-portal/php/get_dir.php?id=%s&date=&filter=&telescope="  %GAIAID
 
 
     resp = requests.get(url, auth=(user, password))

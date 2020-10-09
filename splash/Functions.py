@@ -285,7 +285,6 @@ def ReadAllNewFitsData(Location, TargetName):
     '''
 
     input("This is going to be implemented for version 0.2 of the pipeline")
-
     return ParamName, AllData
 
 
@@ -547,12 +546,11 @@ def GetID(Name, IdType=None):
     Data = np.loadtxt(FilePath, delimiter=",", skiprows=1, dtype=np.str)
     SpName = Data[:,0]
     SpName = np.array([Item.upper() for Item in SpName])
-    GaiaID = Data[:,2].astype(np.int)
+    GaiaID = np.array(Data[:,2].astype(np.int))
     if "SPECULOOS" in IdType.upper():
         Name = Name.upper().replace("B","")
-        print("Fetching GAIA ID for :", Name)
-        Index = [SpName == Name.upper()]
-        if np.sum(Index)==1:
+        Index = [SpName == Name.upper()][0]
+        if np.sum(Index)>=1:
             return GaiaID[Index][0]
         else:
             print("Getting ID Online")
