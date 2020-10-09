@@ -55,7 +55,6 @@ def DownloadData(SpNumber, GAIAID=None, user="", password=""):
         resp.content != b"null" and resp.content != b"\r\nnull"
     ), "Your request is not matching any available data in the Cambridge archive. To see available data, please check http://www.mrao.cam.ac.uk/SPECULOOS/portal_v2/"
 
-    print("The value of GAIAID is:", GAIAID)
 
     Content = eval(resp.content)
     Directories = Content['dirs']
@@ -75,7 +74,7 @@ def DownloadData(SpNumber, GAIAID=None, user="", password=""):
     #Clean the TempFolder
     os.system("rm -rf TempFolder/*")
 
-    for Path, Filter, Date in zip(CompletePath, FilterValues, DateValues):
+    for Path, Filter, Date in tqdm(zip(CompletePath, FilterValues, DateValues)):
 
         if not(os.path.exists("TempFolder")):
             os.system("mkdir TempFolder")
@@ -126,9 +125,6 @@ def DownloadData(SpNumber, GAIAID=None, user="", password=""):
             if len(rGET8.text)>200:
                 f.write(rGET8.text)
 
-        print("data Saved File for %s" %Date)
-
-    print("Now combining data to a single file")
     CombineData(SpNumber)
     return 1
 
@@ -165,7 +161,6 @@ def CombineData(SpNumber):
         AllTime = AllData[:,0]
         AllData = AllData[np.argsort(AllTime)]
         if os.path.exists("data"):
-            print("Saving inside data")
             np.savetxt("data/%s_%sAp.txt" %(SpNumber, Aper), AllData, header=Parameters)
         else:
             print("Saving at the current directory")
