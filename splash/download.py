@@ -41,10 +41,12 @@ def DownloadData(SpNumber, GAIAID=None, user="", password=""):
         SpName = "TOI-736"
         GAIAID = 3562427951852172288
     elif not(GAIAID):
+        SpName=SpNumber
         GAIAID =  GetID(SpNumber,IdType="SPECULOOS")
 
     #Construct the path
-    url = "http://www.mrao.cam.ac.uk/SPECULOOS/speculoos-portal/php/get_dir.php?id=%s&date=&filter=&telescope="  %GAIAID
+    #url = "http://www.mrao.cam.ac.uk/SPECULOOS/speculoos-portal/php/get_dir.php?id=%s&date=&filter=&telescope="  %GAIAID
+    url = "http://www.mrao.cam.ac.uk/SPECULOOS/speculoos-portal/php/get_observations.php?id=%s&date=&filter=&telescope="  %GAIAID
 
 
     resp = requests.get(url, auth=(user, password))
@@ -56,21 +58,32 @@ def DownloadData(SpNumber, GAIAID=None, user="", password=""):
     ), "Your request is not matching any available data in the Cambridge archive. To see available data, please check http://www.mrao.cam.ac.uk/SPECULOOS/portal_v2/"
 
 
-    Content = eval(resp.content)
-    Directories = Content['dirs']
-    DateValues = Content['date_vals']
-    FilterValues = Content['filter_vals']
-    BaseLocation = "http://www.mrao.cam.ac.uk/SPECULOOS"
-
-    if len(Directories)<1:
-        print("Error downloading the data")
-        return 0
+    Content = eval(resp.content)[0]
 
     CompletePath = []
-    for Directory in Directories:
-        ConstructedPath = BaseLocation+Directory[6:].replace("\\","")+"lightcurves/"
+    DateValues = []
+    FilterValues = []
+    BaseLocation = "http://www.mrao.cam.ac.uk/SPECULOOS"
+
+    for Item in Content:
+        DateValues.append(Item['date'])
+        FilterValues.append(Item['filter'])
+
+        if "ARTEMIS" in Item['telescope'].upper() and  int(DateValues[-1])<20200927:
+            version="v2_01"
+        else:
+            version="v2"
+        ConstructedPath = os.path.join(BaseLocation,Item['telescope'],"output",version,DateValues[-1],SpName,"lightcurves")
         CompletePath.append(ConstructedPath)
 
+
+
+
+    if len(DateValues)<1:
+        print("Error downloading the data")
+        return 0
+    else:
+        print("Found %d different nights of observation. Downloading now." %len(DateValues))
     #Clean the TempFolder
     os.system("rm -rf TempFolder/*")
 
@@ -79,12 +92,12 @@ def DownloadData(SpNumber, GAIAID=None, user="", password=""):
         if not(os.path.exists("TempFolder")):
             os.system("mkdir TempFolder")
 
-        urlGet3 = Path+"%s_%s_%s_3_MCMC" %(GAIAID, Filter, Date)
-        urlGet4 = Path+"%s_%s_%s_4_MCMC" %(GAIAID, Filter, Date)
-        urlGet5 = Path+"%s_%s_%s_5_MCMC" %(GAIAID, Filter, Date)
-        urlGet6 = Path+"%s_%s_%s_6_MCMC" %(GAIAID, Filter, Date)
-        urlGet7 = Path+"%s_%s_%s_7_MCMC" %(GAIAID, Filter, Date)
-        urlGet8 = Path+"%s_%s_%s_8_MCMC" %(GAIAID, Filter, Date)
+        urlGet3 = os.path.join(Path, "%s_%s_%s_3_MCMC" %(GAIAID, Filter, Date))
+        urlGet4 = os.path.join(Path, "%s_%s_%s_4_MCMC" %(GAIAID, Filter, Date))
+        urlGet5 = os.path.join(Path, "%s_%s_%s_5_MCMC" %(GAIAID, Filter, Date))
+        urlGet6 = os.path.join(Path, "%s_%s_%s_6_MCMC" %(GAIAID, Filter, Date))
+        urlGet7 = os.path.join(Path, "%s_%s_%s_7_MCMC" %(GAIAID, Filter, Date))
+        urlGet8 = os.path.join(Path, "%s_%s_%s_8_MCMC" %(GAIAID, Filter, Date))
 
         rGET3 = requests.get(urlGet3, auth=(user, password))
         rGET4 = requests.get(urlGet4, auth=(user, password))

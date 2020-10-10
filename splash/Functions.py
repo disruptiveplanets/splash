@@ -483,14 +483,13 @@ def GetIDOnline(Name, IdType=None):
     Returns: string
             If SPECULOOS ID is provided, returns GAIA ID and vice-versa.
     '''
-    FilePath = splash.__path__[0]+"/PhpOutput.txt"
+    FilePath = os.path.join(splash.__path__[0],"PhpOutput.txt")
     FileContent = open(FilePath,'r').readlines()[0]
     ItemList = FileContent.split(",")
     Sp_ID_List = []
     GAIA_ID_List = []
     SP_ID_CS_List = []
 
-    LoopNumber = len(ItemList)//3
 
     for Item in ItemList:
 
@@ -504,19 +503,18 @@ def GetIDOnline(Name, IdType=None):
         elif "GAIA_ID" in CurrentID.upper():
             GAIA_ID_List.append(int(IDVal))
 
-    Sp_ID_Array = np.array(Sp_ID_List)
-    GAIA_ID_Array = np.array(GAIA_ID_List)
+    Sp_ID_Array = np.array(Sp_ID_List).flatten()
+    GAIA_ID_Array = np.array(GAIA_ID_List).flatten()
+
     if "SPECULOOS" in IdType.upper():
-        Index = [Sp_ID_Array == Name.upper()]
+        Index = np.array([Sp_ID_Array == Name.upper()])[0]
         if np.sum(Index)>=1:
             return GAIA_ID_Array[Index][0]
         else:
             assert 1==0, ValueError("Speculoos target probably not observed or ID is wrong")
     elif "GAIA" in IdType.upper():
-        Index = [GAIA_ID_Array == Name.upper()]
+        Index = np.array([GAIA_ID_Array == Name.upper()])[0]
         if np.sum(Index)==1:
-            print(Sp_ID_Array[Index])
-
             return GAIA_ID_Array[Index][0]
         else:
             assert 1==0, ValueError("Speculoos target probably not observed or ID is wrong")
@@ -542,7 +540,7 @@ def GetID(Name, IdType=None):
             If SPECULOOS ID is provided, returns GAIA ID and vice-versa.
     '''
     #Loading the database
-    FilePath = splash.__path__[0]+"/Targets.csv"
+    FilePath = os.path.join(splash.__path__[0],"Targets.csv")
     Data = np.loadtxt(FilePath, delimiter=",", skiprows=1, dtype=np.str)
     SpName = Data[:,0]
     SpName = np.array([Item.upper() for Item in SpName])
@@ -553,7 +551,7 @@ def GetID(Name, IdType=None):
         if np.sum(Index)>=1:
             return GaiaID[Index][0]
         else:
-            print("Getting ID Online")
+            print("Getting ID from PhPOutput.")
             return GetIDOnline(Name, IdType="SPECULOOS")
 
     elif "GAIA" in IdType.upper():
