@@ -173,11 +173,10 @@ def CombineData(SpNumber):
         AllData = np.array(AllData)
         AllTime = AllData[:,0]
         AllData = AllData[np.argsort(AllTime)]
-        if os.path.exists("data"):
-            np.savetxt("data/%s_%sAp.txt" %(SpNumber, Aper), AllData, header=Parameters)
-        else:
-            print("Saving at the current directory")
-            np.savetxt("%s_%sAp.txt" %(SpNumber, Aper), AllData, header=Parameters)
+        if not(os.path.exists("data")):
+            os.system("mkdir data")    
+
+        np.savetxt("data/%s_%sAp.txt" %(SpNumber, Aper), AllData, header=Parameters)
 
     os.system("rm -rf TempFolder")
 
