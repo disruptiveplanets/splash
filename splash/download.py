@@ -43,6 +43,8 @@ def DownloadData(SpNumber, GAIAID=None, user="", password=""):
     elif not(GAIAID):
         SpName=SpNumber
         GAIAID =  GetID(SpNumber,IdType="SPECULOOS")
+    else:
+        SpName="Sp0805-3158"    
 
     #Construct the path
     #url = "http://www.mrao.cam.ac.uk/SPECULOOS/speculoos-portal/php/get_dir.php?id=%s&date=&filter=&telescope="  %GAIAID
@@ -174,7 +176,7 @@ def CombineData(SpNumber):
         AllTime = AllData[:,0]
         AllData = AllData[np.argsort(AllTime)]
         if not(os.path.exists("data")):
-            os.system("mkdir data")    
+            os.system("mkdir data")
 
         np.savetxt("data/%s_%sAp.txt" %(SpNumber, Aper), AllData, header=Parameters)
 
