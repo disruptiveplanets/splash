@@ -44,7 +44,7 @@ def DownloadData(SpNumber, GAIAID=None, user="", password=""):
         SpName=SpNumber
         GAIAID =  GetID(SpNumber,IdType="SPECULOOS")
     else:
-        SpName="Sp0805-3158"    
+        SpName="Sp0805-3158"
 
     #Construct the path
     #url = "http://www.mrao.cam.ac.uk/SPECULOOS/speculoos-portal/php/get_dir.php?id=%s&date=&filter=&telescope="  %GAIAID
@@ -84,6 +84,9 @@ def DownloadData(SpNumber, GAIAID=None, user="", password=""):
     if len(DateValues)<1:
         print("Error downloading the data")
         return 0
+    elif len(DateValues)>300:
+        print("Too many data file found")
+        return 0
     else:
         print("Found %d different nights of observation. Downloading now." %len(DateValues))
     #Clean the TempFolder
@@ -116,28 +119,28 @@ def DownloadData(SpNumber, GAIAID=None, user="", password=""):
         SaveFileName8 = "TempFolder/%s_%s_SPC_ap8.txt" %(str(SpNumber), Date)
 
 
-        with open(SaveFileName3,'w') as f:
-            if len(rGET3.text)>200:
+        if not("TITLE" in rGET3.text.upper()):
+            with open(SaveFileName3,'w') as f:
                 f.write(rGET3.text)
 
-        with open(SaveFileName4,'w') as f:
-            if len(rGET4.text)>200:
+        if not("TITLE" in rGET4.text.upper()):
+            with open(SaveFileName4,'w') as f:
                 f.write(rGET4.text)
 
-        with open(SaveFileName5,'w') as f:
-            if len(rGET5.text)>200:
+        if not("TITLE" in rGET5.text.upper()):
+            with open(SaveFileName5,'w') as f:
                 f.write(rGET5.text)
 
-        with open(SaveFileName6,'w') as f:
-            if len(rGET6.text)>200:
+        if not("TITLE" in rGET6.text.upper()):
+            with open(SaveFileName6,'w') as f:
                 f.write(rGET6.text)
 
-        with open(SaveFileName7,'w') as f:
-            if len(rGET7.text)>200:
+        if not("TITLE" in rGET7.text.upper()):
+            with open(SaveFileName7,'w') as f:
                 f.write(rGET7.text)
 
-        with open(SaveFileName8,'w') as f:
-            if len(rGET8.text)>200:
+        if not("TITLE" in rGET8.text.upper()):
+            with open(SaveFileName8,'w') as f:
                 f.write(rGET8.text)
 
     CombineData(SpNumber)
@@ -152,13 +155,13 @@ def CombineData(SpNumber):
     Parameters= "BJDMID, FLUX, DX, DY, FWHM, FWHM_X, FWHM_Y, SKY, AIRMASS"
     for Aper in range(3,9):
         CurrentFileList = glob.glob("TempFolder/*ap%s.txt" %Aper)
-
+        if len(CurrentFileList)<1:
+            continue
         AllData = []
         for FileItem in CurrentFileList:
             try:
                 DataText = np.genfromtxt(FileItem, skip_header=1)
                 X,Y = np.shape(DataText)
-
                 CurrentData = np.empty((X, 9))
                 CurrentData[:,0] =  DataText[:,1]
             except:

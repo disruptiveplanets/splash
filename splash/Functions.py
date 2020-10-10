@@ -511,14 +511,15 @@ def GetIDOnline(Name, IdType=None):
         if np.sum(Index)>=1:
             return GAIA_ID_Array[Index][0]
         else:
-            assert 1==0, ValueError("Speculoos target probably not observed or ID is wrong")
+            print("Speculoos target not available")
+            return 0
     elif "GAIA" in IdType.upper():
         Index = np.array([GAIA_ID_Array == Name.upper()])[0]
         if np.sum(Index)==1:
             return GAIA_ID_Array[Index][0]
         else:
-            assert 1==0, ValueError("Speculoos target probably not observed or ID is wrong")
-
+            print("Speculoos target not available")
+            return 0
     else:
         print("The wrong name is passed...")
         assert 1==0, ValueError("Speculoos target probably not observed or ID is wrong")
