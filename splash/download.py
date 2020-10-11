@@ -44,7 +44,7 @@ def DownloadData(SpNumber, GAIAID=None, user="", password=""):
         SpName=SpNumber
         GAIAID =  GetID(SpNumber,IdType="SPECULOOS")
     else:
-        SpName="Sp0805-3158"
+        SpName=SpNumber
 
     #Construct the path
     #url = "http://www.mrao.cam.ac.uk/SPECULOOS/speculoos-portal/php/get_dir.php?id=%s&date=&filter=&telescope="  %GAIAID
