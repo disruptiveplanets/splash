@@ -63,7 +63,7 @@ class GeneralTransitSearch:
             self.transitSearchParam = ParseFile(Filepath)
         else:
             print("Reading from default search parameters.")
-            self.transitSearchParam = ParseFile(os.path.join(splash.__path__,"SearchParams.config"))
+            self.transitSearchParam = ParseFile(os.path.join(splash.__path__[0],"SearchParams.config"))
 
     def Run(self, Target, ShowPlot=False, SavePlot=False, SaveData=True, SaveAmplifiedLC=False):
         '''
