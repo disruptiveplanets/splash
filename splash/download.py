@@ -47,7 +47,6 @@ def DownloadData(SpNumber, GAIAID="", user="", password=""):
         SpName=SpNumber
 
     #Construct the path
-    #url = "http://www.mrao.cam.ac.uk/SPECULOOS/speculoos-portal/php/get_dir.php?id=%s&date=&filter=&telescope="  %GAIAID
     url = "http://www.mrao.cam.ac.uk/SPECULOOS/speculoos-portal/php/get_observations.php?id=%s&date=&filter=&telescope="  %GAIAID
 
 
@@ -216,7 +215,7 @@ def DownloadFitsData(SpNumber, GAIAID="", user="", password=""):
         GAIAID =  GetID(SpNumber,IdType="SPECULOOS")
 
     #Construct the path
-    url = "http://www.mrao.cam.ac.uk/SPECULOOS/portal_v2/php/get_dir.php?id=%s&date=&filter=&telescope="  %GAIAID
+    url = "http://www.mrao.cam.ac.uk/SPECULOOS/speculoos-portal/php/get_observations.php?id=%s&date=&filter=&telescope="  %GAIAID
 
 
 
@@ -230,20 +229,29 @@ def DownloadFitsData(SpNumber, GAIAID="", user="", password=""):
 
     print("The value of GAIAID is:", GAIAID)
 
-    Content = eval(resp.content)
-    Directories = Content['dirs']
-    DateValues = Content['date_vals']
-    FilterValues = Content['filter_vals']
+
+    Content = eval(resp.content)[0]
+    CompletePath = []
+    DateValues = []
+    FilterValues = []
     BaseLocation = "http://www.mrao.cam.ac.uk/SPECULOOS"
 
-    if len(Directories)<1:
+
+    if len(Content)<1:
         print("Error downloading the data")
         return 0
 
-    CompletePath = []
-    for Directory in Directories:
-        ConstructedPath = BaseLocation+Directory[6:].replace("\\","")
+    for Item in Content:
+        DateValues.append(Item['date'])
+        FilterValues.append(Item['filter'])
+
+        if "ARTEMIS" in Item['telescope'].upper() and  int(DateValues[-1])<20200927:
+            version="v2_01"
+        else:
+            version="v2"
+        ConstructedPath = os.path.join(BaseLocation,Item['telescope'],"output",version,DateValues[-1],SpName)
         CompletePath.append(ConstructedPath)
+
 
     os.system("rm -rf TempFolder/*")
 
@@ -272,12 +280,12 @@ def DownloadFitsData(SpNumber, GAIAID="", user="", password=""):
         rGET8 = requests.get(urlGet8, auth=(user, password))
 
         SaveFileName0 = "TempFolder/%s/Catalogue.fits" %str(SpNumber)
-        SaveFileName3 = "TempFolder/%s/%s_SPC_3.fits" %(str(SpNumber), Date)
-        SaveFileName4 = "TempFolder/%s/%s_SPC_4.fits" %(str(SpNumber), Date)
-        SaveFileName5 = "TempFolder/%s/%s_SPC_5.fits" %(str(SpNumber), Date)
-        SaveFileName6 = "TempFolder/%s/%s_SPC_6.fits" %(str(SpNumber), Date)
-        SaveFileName7 = "TempFolder/%s/%s_SPC_7.fits" %(str(SpNumber), Date)
-        SaveFileName8 = "TempFolder/%s/%s_SPC_8.fits" %(str(SpNumber), Date)
+        SaveFileName3 = "TempFolder/%s/%s_%s_SPC_3.fits" %(str(SpNumber), Filter, Date)
+        SaveFileName4 = "TempFolder/%s/%s_%s_SPC_4.fits" %(str(SpNumber), Filter, Date)
+        SaveFileName5 = "TempFolder/%s/%s_%s_SPC_5.fits" %(str(SpNumber), Filter, Date)
+        SaveFileName6 = "TempFolder/%s/%s_%s_SPC_6.fits" %(str(SpNumber), Filter, Date)
+        SaveFileName7 = "TempFolder/%s/%s_%s_SPC_7.fits" %(str(SpNumber), Filter, Date)
+        SaveFileName8 = "TempFolder/%s/%s_%s_SPC_8.fits" %(str(SpNumber), Filter, Date)
 
         if not(os.path.exists(SaveFileName0)):
             rGETCat = requests.get(Catalogue, auth=(user, password))
