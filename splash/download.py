@@ -14,7 +14,7 @@ def get_file_from_url(url, user, password):
     return BytesIO(resp.content)
 
 
-def DownloadData(SpNumber, GAIAID=None, user="", password=""):
+def DownloadData(SpNumber, GAIAID="", user="", password=""):
     '''
     This function download Artemis data processed using cambridge pipeline from Cambridge server.
 
@@ -188,7 +188,7 @@ def CombineData(SpNumber):
 
 
 
-def DownloadFitsData(SpNumber, user="", password=""):
+def DownloadFitsData(SpNumber, GAIAID="", user="", password=""):
     '''
     This function download Artemis data processed using cambridge pipeline from Cambridge server.
 
